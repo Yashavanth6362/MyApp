@@ -1,6 +1,25 @@
 {
   "name": "myapp",
+  "displayName": "MyApp",
   "version": "1.0.0",
-  "description": "Simple Cordova App",
-  "private": true
+  "description": "My Weather App",
+  "main": "index.js",
+  "private": true,
+  "license": "MIT",
+  "author": "BOSS",
+  "scripts": {
+    "build": "cordova build android",
+    "prepare": "cordova prepare",
+    "clean": "cordova clean android"
+  },
+  "dependencies": {
+    "cordova": "^12.0.0",
+    "cordova-android": "^13.0.0"
+  },
+  "cordova": {
+    "platforms": [
+      "android"
+    ],
+    "plugins": {}
+  }
 }
