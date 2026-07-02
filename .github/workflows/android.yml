@@ -1,14 +1,47 @@
-name: Android Build
+name: Build Android APK
 
 on:
   workflow_dispatch:
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
 
-      - name: Project Ready
-        run: echo "Workflow is working."
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Cordova
+        run: |
+          npm install -g cordova
+
+      - name: Install Project
+        run: |
+          npm install
+
+      - name: Add Android Platform
+        run: |
+          cordova platform add android
+
+      - name: Build APK
+        run: |
+          cordova build android
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyApp-APK
+          path: platforms/android/app/build/outputs/apk/debug/*.apk
