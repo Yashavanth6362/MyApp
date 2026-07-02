@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Setup Java
@@ -21,6 +21,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: npm
 
       - name: Install Cordova
         run: npm install -g cordova
@@ -28,17 +29,30 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Prepare Cordova
-        run: cordova prepare
+      - name: Check Cordova
+        run: |
+          cordova -v
+          node -v
+          npm -v
 
       - name: Add Android Platform
-        run: cordova platform add android
+        run: |
+          if [ ! -d "platforms/android" ]; then
+            cordova platform add android
+          fi
 
-      - name: Build APK
-        run: cordova build android
+      - name: Prepare Project
+        run: cordova prepare
+
+      - name: Build Debug APK
+        run: cordova build android --debug
+
+      - name: Show APK
+        run: find platforms -name "*.apk"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: MyApp-APK
-          path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          name: MyApp-Debug-APK
+          path: |
+            platforms/android/app/build/outputs/apk/debug/app-debug.apk
