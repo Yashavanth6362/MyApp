@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+  <title>🌤️ Weather Premium</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    /* ─── Reset & Variables ─── */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    :root {
+      --bg-primary: #0b0e1a;
+      --bg-card: rgba(255,255,255,0.06);
+      --border-card: rgba(255,255,255,0.08);
+      --text-primary: #eef2f7;
+      --text-secondary: rgba(255,255,255,0.6);
+      --shadow: 0 8px 32px rgba(0,0,0,0.3);
+      --radius: 20px;
+      --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+      --font: 'Segoe UI', system-ui, sans-serif;
+      --glass-bg: rgba(255,255,255,0.08);
+      --glass-border: rgba(255,255,255,0.12);
+      --nav-height: 64px;
+      --hero-gradient: linear-gradient(135deg, #2193b0, #6dd5ed);
+    }
+    body {
+      font-family: var(--font);
+      min-height: 100vh;
+      padding: 0 0 calc(var(--nav-height) + 20px) 0;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      transition: background 0.8s ease, color 0.6s ease;
+      background-attachment: fixed;
+      background-size: cover;
+      overflow-x: hidden;
+    }
+    body.light-theme {
+      --bg-primary: #eef3fc;
+      --bg-card: rgba(255,255,255,0.5);
+      --border-card: rgba(255,255,255,0.4);
+      --text-primary: #1a1a2e;
+      --text-secondary: rgba(0,0,0,0.5);
+      --shadow: 0 8px 32px rgba(0,0,0,0.06);
+      --glass-bg: rgba(255,255,255,0.6);
+      --glass-border: rgba(255,255,255,0.3);
+    }
+    body.neon-theme {
+      --bg-primary: #0a0a1a;
+      --bg-card: rgba(0,255,255,0.05);
+      --border-card: rgba(0,255,255,0.15);
+      --text-primary: #00ffff;
+      --text-secondary: rgba(0,255,255,0.5);
+      --shadow: 0 0 30px rgba(0,255,255,0.1);
+      --glass-bg: rgba(0,0,0,0.5);
+      --glass-border: rgba(0,255,255,0.2);
+    }
+    body.glass-theme {
+      --bg-primary: #0f0c29;
+      --bg-card: rgba(255,255,255,0.1);
+      --border-card: rgba(255,255,255,0.2);
+      --text-primary: #fff;
+      --text-secondary: rgba(255,255,255,0.7);
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
+      --glass-bg: rgba(255,255,255,0.08);
+      --glass-border: rgba(255,255,255,0.15);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 12px 16px 20px;
+    }
+    /* ─── Scrollbar ─── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius: 8px; }
+    ::-webkit-scrollbar-thumb { background: rgba(102,126,234,0.4); border-radius: 8px; }
+
+    /* ─── Loading ─── */
+    #loadingOverlay {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: var(--bg-primary);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 99999; transition: opacity 0.8s ease; padding:20px; text-align:center;
+    }
+    #loadingOverlay.hidden { opacity:0; pointer-events:none; }
+    #loadingOverlay .icon { font-size:4rem; margin-bottom:12px; animation: pulse 1.5s infinite; }
+    #loadingOverlay h2 { font-weight:300; font-size:1.8rem; margin-bottom:8px; }
+    #loadingOverlay p { opacity:0.6; font-size:0.9rem; margin-bottom:20px; }
+    .progress-bar { width:240px; max-width:80%; height:6px; background:rgba(255,255,255,0.08); border-radius:12px; overflow:hidden; }
+    .progress-bar .fill { height:100%; width:0%; background:linear-gradient(90deg,#667eea,#764ba2); transition:width 0.4s ease; border-radius:12px; }
+    .retry-btn { margin-top:20px; padding:10px 28px; border:none; border-radius:40px; background:rgba(102,126,234,0.7); color:#fff; cursor:pointer; font-size:0.9rem; transition:0.3s; display:none; }
+    .retry-btn:hover { background:rgba(102,126,234,0.95); transform:scale(1.03); }
+
+    /* ─── Offline Banner ─── */
+    #offlineBanner { display:none; background:rgba(231,76,60,0.15); backdrop-filter:blur(8px); border:1px solid rgba(231,76,60,0.2); color:#e74c3c; padding:8px 16px; border-radius:12px; margin:8px 0 12px; text-align:center; font-size:0.85rem; }
+
+    /* ─── Search ─── */
+    .search-container {
+      position: sticky; top:8px; z-index:10; margin-bottom:12px; display:flex; gap:8px; align-items:center;
+    }
+    .search-container input {
+      flex:1; padding:12px 16px 12px 48px; border:none; border-radius:40px;
+      background:var(--glass-bg); backdrop-filter:blur(8px); border:1px solid var(--glass-border);
+      color:var(--text-primary); font-size:0.95rem; outline:none; min-height:48px; transition:var(--transition);
+    }
+    .search-container input::placeholder { color:var(--text-secondary); }
+    .search-container input:focus { border-color:rgba(102,126,234,0.5); box-shadow:0 0 0 4px rgba(102,126,234,0.1); }
+    .search-container .search-icon { position:absolute; left:16px; top:50%; transform:translateY(-50%); opacity:0.5; }
+    .search-suggestions {
+      position:absolute; top:56px; left:0; right:0; background:var(--glass-bg); backdrop-filter:blur(12px);
+      border:1px solid var(--glass-border); border-radius:16px; padding:8px 0; display:none; z-index:20;
+      max-height:200px; overflow-y:auto;
+    }
+    .search-suggestions .suggestion { padding:10px 16px; cursor:pointer; transition:0.2s; display:flex; align-items:center; gap:8px; }
+    .search-suggestions .suggestion:hover { background:rgba(102,126,234,0.15); }
+
+    /* ─── Hero ─── */
+    .hero {
+      background: var(--hero-gradient);
+      border-radius: var(--radius);
+      padding: 28px 20px;
+      margin-bottom: 16px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      transition: background 0.8s ease;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%; width: 200%; height: 200%;
+      background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: heroGlow 8s ease-in-out infinite alternate;
+    }
+    @keyframes heroGlow {
+      0% { transform: scale(1) rotate(0deg); opacity:0.3; }
+      100% { transform: scale(1.2) rotate(10deg); opacity:0.6; }
+    }
+    .hero .weather-icon {
+      font-size: 5rem;
+      line-height: 1;
+      filter: drop-shadow(0 8px 24px rgba(0,0,0,0.2));
+      animation: floatIcon 4s ease-in-out infinite;
+      position: relative;
+      z-index: 1;
+    }
+    @keyframes floatIcon {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .hero .temp {
+      font-size: 4rem;
+      font-weight: 300;
+      letter-spacing: -1px;
+      margin: 4px 0;
+      position: relative;
+      z-index: 1;
+    }
+    .hero .desc {
+      font-size: 1.3rem;
+      opacity: 0.9;
+      position: relative;
+      z-index: 1;
+    }
+    .hero .location {
+      font-size: 1rem;
+      opacity: 0.8;
+      margin-top: 4px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero .sub {
+      font-size: 0.8rem;
+      opacity: 0.6;
+      margin-top: 2px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px 20px;
+      margin-top: 14px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero .hero-meta .chip {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(4px);
+      padding: 4px 14px;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .hero .hero-meta .chip i { font-size: 0.9rem; }
+
+    .last-updated {
+      font-size: 0.7rem;
+      opacity: 0.5;
+      margin-top: 6px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ─── Glass Cards ─── */
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::after {
+      content: '';
+      position: absolute;
+      top: -1px; left: -1px; right: -1px; bottom: -1px;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(102,126,234,0.1), transparent 50%, rgba(118,75,162,0.1));
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .card:hover::after { opacity: 1; }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 48px rgba(0,0,0,0.25);
+    }
+    .card.collapsible .card-header {
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+    .card.collapsible .card-header .toggle-icon { transition: transform 0.3s; }
+    .card.collapsible.collapsed .card-body { display: none; }
+    .card.collapsible.collapsed .toggle-icon { transform: rotate(-90deg); }
+    .card-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      opacity: 0.5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+    .card-title i { font-size: 0.9rem; opacity:0.7; }
+
+    /* ─── Hourly ─── */
+    .hourly-scroll {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 8px 0 12px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .hour-item {
+      flex: 0 0 80px;
+      text-align: center;
+      background: rgba(255,255,255,0.04);
+      padding: 10px 6px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.06);
+      scroll-snap-align: start;
+      transition: 0.2s;
+      backdrop-filter: blur(4px);
+    }
+    .hour-item:hover { background: rgba(255,255,255,0.08); transform: scale(1.05); }
+    .hour-item .time { font-size: 0.7rem; opacity:0.5; font-weight:500; }
+    .hour-item .icon { font-size: 1.8rem; margin:6px 0; }
+    .hour-item .temp { font-weight:600; font-size:0.9rem; }
+    .hour-item .rain { font-size:0.65rem; opacity:0.5; }
+
+    /* ─── Weekly ─── */
+    .weekly-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px;
+    }
+    .week-day {
+      background: rgba(255,255,255,0.04);
+      padding: 14px 8px;
+      border-radius: 16px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: 0.2s;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+    }
+    .week-day:hover { background: rgba(255,255,255,0.1); transform: scale(1.03); }
+    .week-day .day { font-weight:600; font-size:0.85rem; }
+    .week-day .date { font-size:0.55rem; opacity:0.4; text-transform:uppercase; }
+    .week-day .icon { font-size:2rem; margin:6px 0; }
+    .week-day .temps { font-size:0.85rem; font-weight:500; }
+    .week-day .rain-chance { font-size:0.65rem; opacity:0.5; }
+
+    /* ─── Bottom Sheet ─── */
+    .bottom-sheet {
+      position: fixed; bottom:-100%; left:0; right:0;
+      background:var(--glass-bg); backdrop-filter:blur(20px);
+      border-radius:24px 24px 0 0; padding:20px 24px 30px;
+      box-shadow:0 -8px 40px rgba(0,0,0,0.4);
+      transition:bottom 0.4s cubic-bezier(0.4,0,0.2,1);
+      z-index:100; border-top:1px solid var(--glass-border);
+      max-height:70vh; overflow-y:auto;
+    }
+    .bottom-sheet.open { bottom:0; }
+    .bottom-sheet .drag-handle { width:40px; height:4px; border-radius:4px; background:rgba(255,255,255,0.2); margin:0 auto 16px; }
+    .bottom-sheet .close-sheet { float:right; background:none; border:none; color:var(--text-primary); font-size:1.2rem; cursor:pointer; opacity:0.5; }
+
+    /* ─── AQI Gauge ─── */
+    .aqi-gauge {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .aqi-gauge svg {
+      width: 100px;
+      height: 100px;
+      transform: rotate(-90deg);
+    }
+    .aqi-gauge .bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; }
+    .aqi-gauge .progress {
+      fill: none;
+      stroke: #2ecc71;
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s ease, stroke 0.5s;
+    }
+    .aqi-info { flex:1; min-width:140px; }
+    .aqi-info .aqi-label { font-size:1.2rem; font-weight:500; }
+    .aqi-info .aqi-desc { opacity:0.6; font-size:0.85rem; }
+    .aqi-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 16px;
+      margin-top: 8px;
+    }
+    .aqi-details .item { font-size:0.8rem; display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.04); padding:2px 0; }
+    .aqi-details .item .label { opacity:0.5; }
+
+    /* ─── Alerts ─── */
+    .alert-item {
+      padding: 10px 14px;
+      border-radius: 12px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size:0.9rem;
+      border-left: 4px solid #f1c40f;
+      background: rgba(241,196,15,0.08);
+    }
+    .alert-item.success { border-left-color:#2ecc71; background:rgba(46,204,113,0.08); }
+    .alert-item.danger { border-left-color:#e74c3c; background:rgba(231,76,60,0.08); }
+
+    /* ─── AI Chat ─── */
+    .chat-box {
+      background: rgba(0,0,0,0.15);
+      border-radius: 16px;
+      padding: 12px 16px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-size:0.9rem;
+      line-height:1.6;
+      margin-bottom:10px;
+      border:1px solid rgba(255,255,255,0.04);
+      min-height: 60px;
+    }
+    .chat-box .bubble {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 18px 18px 18px 4px;
+      margin: 2px 0;
+      clear: both;
+    }
+    .chat-box .bubble.user {
+      background: rgba(102,126,234,0.25);
+      border-radius: 18px 18px 4px 18px;
+      float: right;
+    }
+    .chat-box .bubble.ai {
+      background: rgba(255,255,255,0.08);
+      float: left;
+    }
+    .chat-box::after { content:''; display:table; clear:both; }
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .chat-input-row input {
+      flex:1; padding:10px 14px; border:none; border-radius:40px;
+      background:rgba(255,255,255,0.07); color:inherit; outline:none; font-size:0.85rem;
+      border:1px solid rgba(255,255,255,0.06); min-height:44px;
+    }
+    .chat-input-row input:focus { border-color:rgba(102,126,234,0.4); }
+    .chat-input-row button {
+      padding:10px 20px; border:none; border-radius:40px;
+      background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; cursor:pointer;
+      font-weight:600; transition:0.3s; font-size:0.85rem; min-height:44px;
+      display:flex; align-items:center; gap:6px;
+    }
+    .chat-input-row button:hover { transform:scale(1.02); box-shadow:0 6px 24px rgba(102,126,234,0.3); }
+    .quick-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .quick-chips button {
+      background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08);
+      color:inherit; padding:4px 14px; border-radius:30px; font-size:0.7rem;
+      cursor:pointer; transition:0.2s;
+    }
+    .quick-chips button:hover { background:rgba(102,126,234,0.2); border-color:rgba(102,126,234,0.3); }
+
+    /* ─── Stats ─── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px;
+    }
+    .stat-item {
+      background: rgba(255,255,255,0.04);
+      padding: 12px 8px;
+      border-radius: 14px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.04);
+      transition: 0.2s;
+    }
+    .stat-item:hover { background: rgba(255,255,255,0.08); }
+    .stat-item .value { font-size:1.3rem; font-weight:500; }
+    .stat-item .label { font-size:0.6rem; text-transform:uppercase; opacity:0.4; letter-spacing:0.5px; margin-top:2px; }
+
+    /* ─── Charts ─── */
+    .chart-container { margin: 10px 0; position:relative; height:160px; }
+    .chart-container canvas { width:100% !important; height:100% !important; border-radius:12px; }
+
+    /* ─── Settings ─── */
+    .settings-group { margin-bottom:16px; }
+    .settings-group h4 { font-size:0.8rem; opacity:0.5; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+    .setting-item {
+      display:flex; justify-content:space-between; align-items:center; padding:8px 0;
+      border-bottom:1px solid rgba(255,255,255,0.04);
+    }
+    .setting-item .label { font-size:0.85rem; }
+    .setting-item select, .setting-item input[type="checkbox"] {
+      background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+      color:inherit; padding:4px 8px; border-radius:8px; font-size:0.8rem; outline:none;
+    }
+    .setting-item input[type="checkbox"] { width:20px; height:20px; accent-color:#667eea; }
+
+    /* ─── Bottom Nav ─── */
+    .bottom-nav {
+      position: fixed; bottom:0; left:0; right:0; height:var(--nav-height);
+      background:var(--glass-bg); backdrop-filter:blur(20px);
+      border-top:1px solid var(--glass-border);
+      display:flex; justify-content:space-around; align-items:center;
+      z-index:999; padding:0 8px;
+    }
+    .bottom-nav .nav-item {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:2px; color:var(--text-secondary); font-size:0.6rem;
+      cursor:pointer; transition:var(--transition);
+      padding:4px 12px; border-radius:30px; min-height:44px; min-width:44px;
+      background:transparent; border:none; text-decoration:none; position:relative;
+    }
+    .bottom-nav .nav-item i { font-size:1.2rem; transition:0.2s; }
+    .bottom-nav .nav-item.active {
+      color:#667eea; background:rgba(102,126,234,0.1);
+    }
+    .bottom-nav .nav-item.active i { transform:scale(1.1); }
+    .bottom-nav .nav-item .badge {
+      position:absolute; top:4px; right:4px; background:#e74c3c; color:#fff;
+      border-radius:50%; width:18px; height:18px; font-size:0.6rem;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .bottom-nav .nav-item:hover { color:var(--text-primary); }
+
+    /* ─── FAB ─── */
+    .fab {
+      position: fixed; bottom:calc(var(--nav-height) + 20px); right:20px;
+      width:56px; height:56px; border-radius:50%;
+      background:linear-gradient(135deg,#667eea,#764ba2); border:none; color:#fff;
+      font-size:1.4rem; cursor:pointer; box-shadow:0 6px 24px rgba(102,126,234,0.4);
+      transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease;
+      z-index:99;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .fab:hover { transform:scale(1.1) rotate(45deg); box-shadow:0 8px 32px rgba(102,126,234,0.6); }
+    .fab:active { transform:scale(0.95); }
+
+    /* ─── Toast ─── */
+    .toast-container {
+      position: fixed; bottom:calc(var(--nav-height) + 80px); left:50%; transform:translateX(-50%);
+      z-index:9999; pointer-events:none; display:flex; flex-direction:column; align-items:center;
+      gap:6px; width:90%; max-width:400px;
+    }
+    .toast {
+      pointer-events:auto; background:rgba(0,0,0,0.8); backdrop-filter:blur(12px);
+      color:#fff; padding:10px 20px; border-radius:16px; font-size:0.85rem;
+      box-shadow:0 8px 32px rgba(0,0,0,0.3); animation:toastIn 0.35s ease;
+      border:1px solid rgba(255,255,255,0.06); width:100%; text-align:center;
+    }
+    .toast.success { border-left:4px solid #2ecc71; }
+    .toast.warning { border-left:4px solid #f1c40f; }
+    .toast.error { border-left:4px solid #e74c3c; }
+    @keyframes toastIn {
+      from { opacity:0; transform:translateY(20px) scale(0.95); }
+      to { opacity:1; transform:translateY(0) scale(1); }
+    }
+
+    /* ─── Theme Switcher ─── */
+    .theme-switcher {
+      display: flex; gap:6px; flex-wrap:wrap;
+    }
+    .theme-switcher button {
+      padding:4px 14px; border-radius:20px; border:1px solid var(--glass-border);
+      background:var(--glass-bg); color:var(--text-primary); font-size:0.75rem;
+      cursor:pointer; transition:var(--transition);
+    }
+    .theme-switcher button.active {
+      background:#667eea; border-color:#667eea; color:#fff;
+    }
+
+    /* ─── Particles canvas ─── */
+    #particlesCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── Responsive ─── */
+    @media (min-width:640px) {
+      body { padding:0 20px calc(var(--nav-height)+24px) 20px; }
+      .container { padding:16px 0 20px; }
+      .hero .temp { font-size:4.8rem; }
+      .hero .weather-icon { font-size:6rem; }
+      .weekly-grid { grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); }
+      .stats-grid { grid-template-columns:repeat(4,1fr); }
+      .hour-item { flex:0 0 96px; }
+      .search-container { max-width:500px; margin-left:auto; margin-right:auto; }
+    }
+    @media (min-width:1024px) {
+      .container { max-width:1200px; }
+      .stats-grid { grid-template-columns:repeat(6,1fr); }
+    }
+    @media (max-width:480px) {
+      .hero .temp { font-size:3rem; }
+      .hero .weather-icon { font-size:4rem; }
+      .bottom-nav .nav-item { font-size:0.5rem; padding:4px 8px; }
+      .bottom-nav .nav-item i { font-size:1rem; }
+      .card { padding:14px 14px; }
+      .fab { width:48px; height:48px; font-size:1.2rem; bottom:calc(var(--nav-height)+16px); right:16px; }
+      .weekly-grid { grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); }
+      .hour-item { flex:0 0 68px; }
+    }
+    .hidden { display:none !important; }
+    .text-center { text-align:center; }
+    .mt-8 { margin-top:8px; }
+    .mb-8 { margin-bottom:8px; }
+    .flex-wrap { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+    .gap-4 { gap:4px; }
+    .op-5 { opacity:0.5; }
+    .w-full { width:100%; }
+    .relative { position:relative; }
+    .z-1 { position:relative; z-index:1; }
+    @keyframes pulse {
+      0%,100% { transform:scale(1); opacity:1; }
+      50% { transform:scale(1.05); opacity:0.7; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── LOADING ─── -->
+  <div id="loadingOverlay">
+    <div class="icon">🌤️</div>
+    <h2>Loading Weather</h2>
+    <p id="loadingMsg">Detecting location…</p>
+    <div class="progress-bar"><div class="fill" id="loadingProgress" style="width:0%"></div></div>
+    <button class="retry-btn" id="retryBtn" onclick="manualRetry()">🔄 Retry</button>
+  </div>
+
+  <!-- ─── PARTICLES CANVAS ─── -->
+  <canvas id="particlesCanvas"></canvas>
+
+  <!-- ─── OFFLINE BANNER ─── -->
+  <div id="offlineBanner">📴 Offline – Showing cached weather</div>
+
+  <!-- ─── TOAST ─── -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ─── BOTTOM SHEET ─── -->
+  <div class="bottom-sheet" id="bottomSheet">
+    <div class="drag-handle"></div>
+    <button class="close-sheet" onclick="closeBottomSheet()"><i class="fas fa-times"></i></button>
+    <div id="sheetContent"></div>
+  </div>
+
+  <!-- ─── MAIN ─── -->
+  <div class="container" id="app">
+
+    <!-- SEARCH -->
+    <div class="search-container relative">
+      <span class="search-icon"><i class="fas fa-search"></i></span>
+      <input type="text" id="searchInput" placeholder="Search city…" autocomplete="off" />
+      <div class="search-suggestions" id="searchSuggestions"></div>
+    </div>
+
+    <!-- HOME -->
+    <div id="homeSection">
+      <div class="hero" id="heroCard">
+        <div class="weather-icon" id="heroIcon">⏳</div>
+        <div class="temp" id="heroTemp">--°C</div>
+        <div class="desc" id="heroDesc">Loading…</div>
+        <div class="location" id="heroLocation">📍 --</div>
+        <div class="sub" id="heroTime">--</div>
+        <div class="hero-meta" id="heroMeta">
+          <span class="chip"><i class="fas fa-temperature-high"></i> <span id="heroFeels">--</span>°C</span>
+          <span class="chip"><i class="fas fa-tint"></i> <span id="heroHumidity">--</span>%</span>
+          <span class="chip"><i class="fas fa-wind"></i> <span id="heroWind">--</span> km/h</span>
+          <span class="chip"><i class="fas fa-cloud-rain"></i> <span id="heroRain">--</span> mm</span>
+        </div>
+        <div class="last-updated" id="lastUpdated">🔄 Updated: --</div>
+      </div>
+
+      <!-- Collapsible Cards -->
+      <div id="cardsContainer">
+        <div class="card collapsible" id="hourlyCard">
+          <div class="card-header" onclick="toggleCollapse(this)">
+            <span class="card-title"><i class="fas fa-clock"></i> Hourly Forecast</span>
+            <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="card-body">
+            <div class="hourly-scroll" id="hourlyContainer"></div>
+          </div>
+        </div>
+        <div class="card collapsible" id="weeklyCard">
+          <div class="card-header" onclick="toggleCollapse(this)">
+            <span class="card-title"><i class="fas fa-calendar-week"></i> 7-Day Forecast</span>
+            <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="card-body">
+            <div class="weekly-grid" id="weeklyContainer"></div>
+          </div>
+        </div>
+        <div class="card collapsible" id="aqiCard">
+          <div class="card-header" onclick="toggleCollapse(this)">
+            <span class="card-title"><i class="fas fa-wind"></i> Air Quality</span>
+            <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="card-body">
+            <div class="aqi-gauge" id="airQualityContainer">
+              <svg viewBox="0 0 120 120">
+                <circle class="bg" cx="60" cy="60" r="50" />
+                <circle class="progress" id="aqiProgress" cx="60" cy="60" r="50"
+                        stroke-dasharray="314.159" stroke-dashoffset="314.159" />
+              </svg>
+              <div class="aqi-info">
+                <div class="aqi-label" id="aqiLabel">Loading…</div>
+                <div class="aqi-desc" id="aqiDesc">Please wait</div>
+                <div class="aqi-details" id="aqiDetails">
+                  <div class="item"><span class="label">PM2.5</span> <span id="pm25">--</span></div>
+                  <div class="item"><span class="label">PM10</span> <span id="pm10">--</span></div>
+                  <div class="item"><span class="label">O₃</span> <span id="o3">--</span></div>
+                  <div class="item"><span class="label">CO</span> <span id="co">--</span></div>
+                  <div class="item"><span class="label">NO₂</span> <span id="no2">--</span></div>
+                  <div class="item"><span class="label">SO₂</span> <span id="so2">--</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card collapsible" id="alertsCard">
+          <div class="card-header" onclick="toggleCollapse(this)">
+            <span class="card-title"><i class="fas fa-exclamation-triangle"></i> Alerts</span>
+            <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="card-body">
+            <div id="alertsContainer"><div class="alert-item">⏳ Checking…</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORECAST -->
+    <div id="forecastSection" class="hidden">
+      <h2 style="font-weight:300; margin-bottom:12px;">📅 Extended Forecast</h2>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-calendar-week"></i> Weekly</div>
+        <div class="weekly-grid" id="forecastWeekly"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-chart-line"></i> Temperature Trend</div>
+        <div class="chart-container"><canvas id="tempChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-cloud-rain"></i> Rain Probability</div>
+        <div class="chart-container"><canvas id="rainChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- AI -->
+    <div id="aiSection" class="hidden">
+      <h2 style="font-weight:300; margin-bottom:12px;">🤖 AI Assistant</h2>
+      <div class="card">
+        <div class="chat-box" id="chatBox">💬 Ask me anything about the weather!</div>
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" placeholder="e.g. Will it rain today?" />
+          <button onclick="askAI()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+        <div class="quick-chips">
+          <button onclick="quickAsk('What\'s the weather like right now?')">☀️ Current</button>
+          <button onclick="quickAsk('Will it rain today?')">🌧️ Rain</button>
+          <button onclick="quickAsk('What should I wear?')">👕 Wear</button>
+          <button onclick="quickAsk('Give me weather tips for today')">💡 Tips</button>
+          <button onclick="quickAsk('Tell me about the air quality')">🌬️ AQI</button>
+          <button onclick="quickAsk('Is there any weather alert?')">⚠️ Alerts</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboardSection" class="hidden">
+      <h2 style="font-weight:300; margin-bottom:12px;">📊 Dashboard</h2>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-chart-pie"></i> Statistics</div>
+        <div class="stats-grid" id="statsGrid"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-palette"></i> Theme</div>
+        <div class="theme-switcher">
+          <button onclick="setTheme('light')">☀️ Light</button>
+          <button onclick="setTheme('dark')">🌙 Dark</button>
+          <button onclick="setTheme('auto')">🌈 Auto</button>
+          <button onclick="setTheme('glass')">🧊 Glass</button>
+          <button onclick="setTheme('neon')">🌌 Neon</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-sliders-h"></i> Settings</div>
+        <div class="settings-group">
+          <h4>Units</h4>
+          <div class="setting-item">
+            <span class="label">Temperature</span>
+            <select id="unitSelect" onchange="applySettings()">
+              <option value="c">°C</option>
+              <option value="f">°F</option>
+            </select>
+          </div>
+        </div>
+        <div class="settings-group">
+          <h4>Sound</h4>
+          <div class="setting-item">
+            <span class="label">Ambient Sound</span>
+            <input type="checkbox" id="ambientSoundToggle" checked onchange="applySettings()" />
+          </div>
+        </div>
+        <div class="settings-group">
+          <h4>Animations</h4>
+          <div class="setting-item">
+            <span class="label">Enable animations</span>
+            <input type="checkbox" id="animationsToggle" checked onchange="applySettings()" />
+          </div>
+        </div>
+        <div class="settings-group">
+          <h4>Location</h4>
+          <div class="setting-item">
+            <span class="label">Use GPS</span>
+            <input type="checkbox" id="gpsToggle" checked onchange="applySettings()" />
+          </div>
+        </div>
+        <div class="settings-group">
+          <h4>About</h4>
+          <div style="font-size:0.8rem; opacity:0.6;">Weather.js v2.3.0 • Open‑Meteo • Built with ❤️</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── BOTTOM NAV ─── -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-section="home" onclick="navigateTo('home')">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" data-section="forecast" onclick="navigateTo('forecast')">
+      <i class="fas fa-calendar-alt"></i>
+      <span>Forecast</span>
+    </button>
+    <button class="nav-item" data-section="ai" onclick="navigateTo('ai')">
+      <i class="fas fa-robot"></i>
+      <span>AI</span>
+    </button>
+    <button class="nav-item" data-section="dashboard" onclick="navigateTo('dashboard')">
+      <i class="fas fa-chart-bar"></i>
+      <span>Stats</span>
+    </button>
+  </nav>
+
+  <!-- ─── FAB ─── -->
+  <button class="fab" id="fabBtn" onclick="refreshAll()" title="Refresh">
+    <i class="fas fa-sync-alt"></i>
+  </button>
+
+  <!-- ─── LOAD EXTERNAL LIBRARY ─── -->
+  <script src="22.js"></script>
+
+  <!-- ─── APPLICATION SCRIPT ─── -->
+  <script>
+    // ─── DOM Helpers ───
+    const $ = id => document.getElementById(id);
+
+    // ─── State ───
+    let rainAnim = null, snowAnim = null, thunderAnim = null;
+    let loadingComplete = false;
+
+    // ─── Toast ───
+    function showToast(msg, type = 'info') {
+      const container = $('toastContainer');
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.textContent = msg;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'all 0.3s';
+        setTimeout(() => el.remove(), 350);
+      }, 3200);
+    }
+
+    // ─── Loading ───
+    function updateLoadingProgress(step, percent) {
+      $('loadingMsg').textContent = step;
+      $('loadingProgress').style.width = percent + '%';
+    }
+    function hideLoading() { $('loadingOverlay').classList.add('hidden'); }
+    function showRetry() { $('retryBtn').style.display = 'block'; $('loadingMsg').textContent = '⏳ Loading timed out. Click Retry.'; }
+    async function manualRetry() {
+      $('retryBtn').style.display = 'none';
+      $('loadingMsg').textContent = '🔄 Retrying…';
+      await Weather.refresh();
+    }
+
+    // ─── Navigation ───
+    function navigateTo(section) {
+      document.querySelectorAll('.bottom-nav .nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelector(`.bottom-nav .nav-item[data-section="${section}"]`).classList.add('active');
+      ['home','forecast','ai','dashboard'].forEach(s => $(s+'Section').classList.add('hidden'));
+      $(section+'Section').classList.remove('hidden');
+      window.scrollTo({ top:0, behavior:'smooth' });
+    }
+
+    // ─── Collapsible Cards ───
+    function toggleCollapse(header) { header.closest('.card').classList.toggle('collapsed'); }
+
+    // ─── Bottom Sheet ───
+    function openBottomSheet(content) { $('sheetContent').innerHTML = content; $('bottomSheet').classList.add('open'); }
+    function closeBottomSheet() { $('bottomSheet').classList.remove('open'); }
+
+    // ─── Theme ───
+    function setTheme(theme) {
+      Weather.theme(theme);
+      document.querySelectorAll('.theme-switcher button').forEach(b => b.classList.remove('active'));
+      const btn = document.querySelector(`.theme-switcher button[onclick*="${theme}"]`);
+      if (btn) btn.classList.add('active');
+    }
+
+    // ─── Settings ───
+    function applySettings() {
+      const unit = $('unitSelect').value;
+      const sound = $('ambientSoundToggle').checked;
+      const animations = $('animationsToggle').checked;
+      const gps = $('gpsToggle').checked;
+      Weather.config({ units:unit, sound:sound, animation:animations, gps:gps });
+      document.querySelectorAll('.card, .hero, .hour-item, .week-day, .stat-item').forEach(el => {
+        el.style.transition = animations ? 'all 0.3s ease' : 'none';
+      });
+    }
+
+    // ─── Search ───
+    const searchInput = $('searchInput');
+    const suggestions = $('searchSuggestions');
+    searchInput.addEventListener('input', async function() {
+      const query = this.value.trim();
+      if (query.length < 2) { suggestions.style.display = 'none'; return; }
+      try {
+        const results = await Weather.searchCity(query);
+        if (results) {
+          suggestions.innerHTML = `
+            <div class="suggestion" onclick="selectCity('${results.name}')">
+              <i class="fas fa-map-pin"></i> ${results.name}, ${results.country}
+            </div>
+          `;
+          suggestions.style.display = 'block';
+        }
+      } catch (_) { suggestions.style.display = 'none'; }
+    });
+    function selectCity(name) {
+      searchInput.value = name;
+      suggestions.style.display = 'none';
+      showToast(`🔍 Searching ${name}…`, 'info');
+      Weather.city(name).then(() => {
+        showToast(`✅ Switched to ${name}`, 'success');
+      }).catch(err => showToast(`❌ ${err.message}`, 'error'));
+    }
+
+    // ─── AI ───
+    async function askAI() {
+      const input = $('chatInput');
+      const q = input.value.trim();
+      if (!q) { showToast('Please ask a question!','warning'); return; }
+      const box = $('chatBox');
+      box.innerHTML = '<div class="bubble user">' + q + '</div><div class="bubble ai">🤔 Thinking…</div>';
+      try {
+        const answer = await Weather.ai(q);
+        box.innerHTML = '<div class="bubble user">' + q + '</div><div class="bubble ai">' + answer + '</div>';
+        input.value = '';
+        showToast('✅ AI responded!','success');
+      } catch (e) {
+        box.innerHTML = '<div class="bubble user">' + q + '</div><div class="bubble ai">❌ Error: ' + e.message + '</div>';
+        showToast('❌ AI error: ' + e.message, 'error');
+      }
+    }
+    function quickAsk(q) { $('chatInput').value = q; askAI(); }
+
+    // ─── Refresh ───
+    async function refreshAll() {
+      showToast('🔄 Refreshing…', 'info');
+      await Weather.refresh();
+      updateTimestamp();
+      showToast('✅ Refreshed!', 'success');
+    }
+
+    // ─── Day Detail ───
+    function openDayDetail(day) {
+      const date = new Date(day.date);
+      const content = `
+        <h3>${date.toLocaleDateString('en', { weekday:'long', month:'long', day:'numeric' })}</h3>
+        <div style="font-size:3rem; margin:10px 0;">${Weather.weatherIcon(day.weatherCode)}</div>
+        <div style="font-size:1.4rem;">${Math.round(day.maxTemp)}° / ${Math.round(day.minTemp)}°</div>
+        <div style="opacity:0.6;">Rain chance: ${day.rainChance}%</div>
+        <div style="opacity:0.6;">Sunrise: ${new Date(day.sunrise).toLocaleTimeString()}</div>
+        <div style="opacity:0.6;">Sunset: ${new Date(day.sunset).toLocaleTimeString()}</div>
+      `;
+      openBottomSheet(content);
+    }
+
+    // ─── Update timestamp ───
+    function updateTimestamp() {
+      const now = new Date();
+      const str = now.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      $('lastUpdated').textContent = `🔄 Updated: ${str}`;
+    }
+
+    // ─── Particles ───
+    let particleAnim = null;
+    function startParticles(type) {
+      stopParticles();
+      if (type === 'rain') {
+        particleAnim = Weather.UI.animation.rain();
+      } else if (type === 'snow') {
+        particleAnim = Weather.UI.animation.snow();
+      } else if (type === 'thunder') {
+        particleAnim = Weather.UI.animation.thunder();
+      }
+    }
+    function stopParticles() {
+      if (particleAnim) { particleAnim.stop(); particleAnim = null; }
+    }
+
+    // ─── Update UI ───
+    function updateUI(data) {
+      if (!data) return;
+      const w = data.weather;
+      const loc = data.location;
+      const aq = data.airQuality;
+      const alerts = data.alerts;
+
+      // Hero
+      $('heroIcon').textContent = w.icon || '🌤️';
+      $('heroTemp').textContent = Math.round(w.temperature) + '°C';
+      $('heroDesc').textContent = w.condition || 'Unknown';
+      $('heroLocation').textContent = `📍 ${loc.village || loc.district || loc.state || loc.country || 'Unknown'}`;
+      $('heroTime').textContent = new Date(w.time).toLocaleString('en', { weekday:'long', hour:'2-digit', minute:'2-digit' });
+      $('heroFeels').textContent = Math.round(w.feelsLike);
+      $('heroHumidity').textContent = w.humidity ?? '--';
+      $('heroWind').textContent = Math.round(w.windSpeed) || '--';
+      $('heroRain').textContent = w.rain?.toFixed(1) || '0.0';
+      updateTimestamp();
+
+      // AQI Gauge
+      const aqiVal = aq.aqi ?? 0;
+      const circumference = 314.159;
+      const offset = circumference - (aqiVal / 500) * circumference;
+      const progress = $('aqiProgress');
+      progress.style.strokeDashoffset = Math.min(Math.max(offset, 0), circumference);
+      const color = aqiVal <= 50 ? '#2ecc71' : aqiVal <= 100 ? '#f1c40f' : aqiVal <= 150 ? '#e67e22' : aqiVal <= 200 ? '#e74c3c' : '#8e44ad';
+      progress.style.stroke = color;
+      $('aqiLabel').textContent = aq.aqiDescription || 'Loading...';
+      $('aqiDesc').textContent = aqiVal <= 50 ? 'Excellent' : aqiVal <= 100 ? 'Moderate' : aqiVal <= 150 ? 'Unhealthy (Sensitive)' : aqiVal <= 200 ? 'Unhealthy' : 'Hazardous';
+      $('pm25').textContent = aq.pm25 ?? '--';
+      $('pm10').textContent = aq.pm10 ?? '--';
+      $('o3').textContent = aq.ozone ?? '--';
+      $('co').textContent = aq.carbonMonoxide ?? '--';
+      $('no2').textContent = aq.nitrogenDioxide ?? '--';
+      $('so2').textContent = aq.sulphurDioxide ?? '--';
+
+      // Alerts
+      const alertContainer = $('alertsContainer');
+      if (alerts && alerts.length > 0) {
+        alertContainer.innerHTML = alerts.map(a => `<div class="alert-item ${a.includes('⚠️')?'danger':a.includes('✅')?'success':''}">${a}</div>`).join('');
+      } else {
+        alertContainer.innerHTML = '<div class="alert-item success">✅ No alerts</div>';
+      }
+
+      // Hourly
+      Weather.getHourly().then(hourly => {
+        if (hourly && hourly.hourly) {
+          const h = hourly.hourly;
+          const now = new Date();
+          const currentHour = now.getHours();
+          let html = '';
+          for (let i = 0; i < Math.min(24, h.time.length); i++) {
+            const hour = new Date(h.time[i]);
+            const hourStr = hour.getHours().toString().padStart(2,'0') + ':00';
+            const isNow = hour.getHours() === currentHour && hour.getDate() === now.getDate();
+            const icon = Weather.weatherIcon(h.weather_code[i]);
+            const temp = Math.round(h.temperature_2m[i]);
+            const rain = h.precipitation_probability[i] || 0;
+            html += `
+              <div class="hour-item" style="${isNow ? 'border-color: #667eea; background: rgba(102,126,234,0.15);' : ''}">
+                <div class="time">${isNow ? 'Now' : hourStr}</div>
+                <div class="icon">${icon}</div>
+                <div class="temp">${temp}°</div>
+                <div class="rain">☔ ${Math.round(rain)}%</div>
+              </div>
+            `;
+          }
+          $('hourlyContainer').innerHTML = html;
+        }
+      }).catch(() => {});
+
+      // Weekly
+      Weather.getWeeklySummary().then(week => {
+        if (week && week.length > 0) {
+          const weekHtml = week.map(day => {
+            const date = new Date(day.date);
+            const dayName = date.toLocaleDateString('en', { weekday:'short' });
+            const dateStr = date.toLocaleDateString('en', { month:'short', day:'numeric' });
+            const icon = Weather.weatherIcon(day.weatherCode);
+            return `
+              <div class="week-day" onclick="openDayDetail(${JSON.stringify(day).replace(/"/g,'&quot;')})">
+                <div class="day">${dayName}</div>
+                <div class="date">${dateStr}</div>
+                <div class="icon">${icon}</div>
+                <div class="temps">${Math.round(day.maxTemp)}° / ${Math.round(day.minTemp)}°</div>
+                <div class="rain-chance">☔ ${day.rainChance}%</div>
+              </div>
+            `;
+          }).join('');
+          $('weeklyContainer').innerHTML = weekHtml;
+          $('forecastWeekly').innerHTML = weekHtml;
+          drawCharts(week);
+        }
+      }).catch(() => {});
+
+      // Stats
+      const stats = [
+        { label:'Temp', value:Math.round(w.temperature)+'°' },
+        { label:'Humidity', value:w.humidity+'%' },
+        { label:'Wind', value:Math.round(w.windSpeed)+' km/h' },
+        { label:'AQI', value:aq.aqi ?? '--' },
+        { label:'Feels Like', value:Math.round(w.feelsLike)+'°' },
+        { label:'Rain', value:w.rain?.toFixed(1)+' mm' || '0.0 mm' }
+      ];
+      $('statsGrid').innerHTML = stats.map(s =>
+        `<div class="stat-item"><div class="value">${s.value}</div><div class="label">${s.label}</div></div>`
+      ).join('');
+
+      // ─── Particles & Ambient Sound ───
+      // Get current weather code
+      Weather.getCurrent().then(curr => {
+        const code = curr.current?.weather_code;
+        if (code !== undefined) {
+          // Particles
+          if ([61,63,65,80,81,82].includes(code)) startParticles('rain');
+          else if ([71,73,75,77,85,86].includes(code)) startParticles('snow');
+          else if ([95,96,99].includes(code)) startParticles('thunder');
+          else stopParticles();
+
+          // Ambient sound
+          if ($('ambientSoundToggle').checked) {
+            // Use the library's sound system
+            Weather.UI.sound.fromWeather(code);
+          }
+        }
+      }).catch(() => {});
+    }
+
+    // ─── Draw Charts ───
+    function drawCharts(week) {
+      const tempCanvas = $('tempChart');
+      if (!tempCanvas) return;
+      const ctx1 = tempCanvas.getContext('2d');
+      const rect1 = tempCanvas.parentElement.getBoundingClientRect();
+      tempCanvas.width = rect1.width || 600;
+      tempCanvas.height = 160;
+      const w1 = tempCanvas.width, h1 = tempCanvas.height;
+      const data = week.slice(0,7);
+      const maxT = Math.max(...data.map(d=>d.maxTemp));
+      const minT = Math.min(...data.map(d=>d.minTemp));
+      const range = maxT - minT || 1;
+      const padding = { top:20, bottom:30, left:20, right:20 };
+      const chartW = w1 - padding.left - padding.right;
+      const chartH = h1 - padding.top - padding.bottom;
+      const stepX = chartW / (data.length-1 || 1);
+      const points = data.map((d,i) => ({
+        x: padding.left + i * stepX,
+        y: padding.top + chartH - ((d.maxTemp - minT) / range) * chartH
+      }));
+
+      ctx1.clearRect(0,0,w1,h1);
+      ctx1.beginPath();
+      ctx1.moveTo(points[0].x, points[0].y);
+      for (let i=1; i<points.length; i++) {
+        ctx1.lineTo(points[i].x, points[i].y);
+      }
+      ctx1.strokeStyle = '#667eea';
+      ctx1.lineWidth = 3;
+      ctx1.stroke();
+      points.forEach((p,i) => {
+        ctx1.beginPath();
+        ctx1.arc(p.x, p.y, 4, 0, 2*Math.PI);
+        ctx1.fillStyle = '#764ba2';
+        ctx1.fill();
+        ctx1.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx1.font = '10px sans-serif';
+        ctx1.fillText(Math.round(data[i].maxTemp)+'°', p.x-15, p.y-12);
+      });
+      ctx1.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx1.font = '10px sans-serif';
+      data.forEach((d,i) => {
+        const x = padding.left + i * stepX;
+        ctx1.fillText(new Date(d.date).toLocaleDateString('en',{weekday:'short'}), x-12, h1-8);
+      });
+
+      // Rain chart
+      const rainCanvas = $('rainChart');
+      if (!rainCanvas) return;
+      const ctx2 = rainCanvas.getContext('2d');
+      const rect2 = rainCanvas.parentElement.getBoundingClientRect();
+      rainCanvas.width = rect2.width || 600;
+      rainCanvas.height = 160;
+      const w2 = rainCanvas.width, h2 = rainCanvas.height;
+      const maxRain = Math.max(...data.map(d=>d.rainChance), 10);
+      const stepX2 = (w2 - 40) / (data.length-1 || 1);
+      ctx2.clearRect(0,0,w2,h2);
+      data.forEach((d,i) => {
+        const barH = (d.rainChance / maxRain) * (h2 - 40);
+        const x = 20 + i * stepX2 - 12;
+        const y = h2 - 20 - barH;
+        ctx2.fillStyle = d.rainChance > 70 ? '#e17055' : d.rainChance > 40 ? '#fdcb6e' : '#74b9ff';
+        ctx2.fillRect(x, y, 24, barH);
+        ctx2.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx2.font = '10px sans-serif';
+        ctx2.fillText(Math.round(d.rainChance)+'%', x+2, y-6);
+        ctx2.fillText(new Date(d.date).toLocaleDateString('en',{weekday:'short'}), x-6, h2-4);
+      });
+    }
+
+    // ─── Init ───
+    window.addEventListener('load', async () => {
+      if (typeof Weather === 'undefined') {
+        $('loadingOverlay').classList.add('hidden');
+        $('chatBox').textContent = '❌ 22.js not found!';
+        showToast('❌ Weather library not loaded!', 'error');
+        return;
+      }
+
+      const settings = Weather.settings.get();
+      $('unitSelect').value = settings.units || 'c';
+      $('ambientSoundToggle').checked = settings.sound !== undefined ? settings.sound : true;
+      $('animationsToggle').checked = settings.animation !== undefined ? settings.animation : true;
+      $('gpsToggle').checked = settings.gps !== undefined ? settings.gps : true;
+
+      Weather.config({
+        theme: settings.theme || 'auto',
+        refresh: settings.refresh || 15,
+        sound: settings.sound !== undefined ? settings.sound : true,
+        animation: settings.animation !== undefined ? settings.animation : true,
+        units: settings.units || 'c',
+        gps: settings.gps !== undefined ? settings.gps : true,
+        debug: false
+      });
+
+      Weather.on('update', (data) => {
+        updateUI(data);
+        if (!loadingComplete) {
+          loadingComplete = true;
+          hideLoading();
+          showToast('🌤️ Dashboard ready!', 'success');
+        }
+      });
+
+      Weather.on('error', (err) => {
+        showToast('❌ Error: ' + err.message, 'error');
+        if (!loadingComplete) showRetry();
+      });
+
+      Weather.on('offline', () => { $('offlineBanner').style.display = 'block'; });
+      Weather.on('online', () => { $('offlineBanner').style.display = 'none'; showToast('📶 Back online','success'); });
+
+      const cached = Weather.cache.load();
+      if (cached) {
+        updateUI(cached);
+        showToast('📦 Showing cached data – updating…', 'info');
+      }
+
+      try {
+        await Weather.refresh();
+      } catch (e) {
+        if (!loadingComplete) showRetry();
+      }
+
+      const theme = Weather.settings.get().theme || 'auto';
+      document.querySelectorAll('.theme-switcher button').forEach(b => b.classList.remove('active'));
+      const themeBtn = document.querySelector(`.theme-switcher button[onclick*="${theme}"]`);
+      if (themeBtn) themeBtn.classList.add('active');
+
+      $('chatInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') askAI(); });
+
+      // FAB long press
+      let longPressTimer;
+      const fab = $('fabBtn');
+      ['mousedown','touchstart'].forEach(evt => {
+        fab.addEventListener(evt, () => {
+          longPressTimer = setTimeout(() => {
+            showToast('📍 Updating GPS…', 'info');
+            Weather.refresh();
+          }, 800);
+        });
+      });
+      ['mouseup','mouseleave','touchend'].forEach(evt => {
+        fab.addEventListener(evt, () => clearTimeout(longPressTimer));
+      });
+
+      updateTimestamp();
+    });
+  </script>
+
+</body>
+</html>
