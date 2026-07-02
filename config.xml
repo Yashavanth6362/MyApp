@@ -1,18 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <widget id="com.myapp.demo"
         version="1.0.0"
-        xmlns="http://www.w3.org/ns/widgets">
+        xmlns="http://www.w3.org/ns/widgets"
+        xmlns:android="http://schemas.android.com/apk/res/android">
 
     <name>MyApp</name>
-
-    <description>
-        My First Cordova App
-    </description>
+    <description>My Cordova App</description>
+    <author>BOSS</author>
 
     <content src="index.html"/>
 
-    <preference name="Fullscreen" value="false"/>
-    <preference name="SplashScreenDelay" value="0"/>
+    <access origin="*" />
+    <allow-navigation href="*" />
+    <allow-intent href="*" />
 
-    <allow-navigation href="*"/>
+    <preference name="AndroidXEnabled" value="true"/>
+    <preference name="SplashScreenDelay" value="0"/>
+    <preference name="Fullscreen" value="false"/>
+    <preference name="DisallowOverscroll" value="true"/>
+
+    <platform name="android">
+
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+
+            <!-- Internet -->
+            <uses-permission android:name="android.permission.INTERNET"/>
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+            <!-- Location -->
+            <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+            <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+            <!-- Camera -->
+            <uses-permission android:name="android.permission.CAMERA"/>
+
+            <!-- Microphone -->
+            <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
+            <!-- Notifications (Android 13+) -->
+            <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+            <!-- Vibration -->
+            <uses-permission android:name="android.permission.VIBRATE"/>
+
+            <!-- Wake Lock -->
+            <uses-permission android:name="android.permission.WAKE_LOCK"/>
+
+            <!-- Bluetooth -->
+            <uses-permission android:name="android.permission.BLUETOOTH"/>
+            <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+            <uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
+
+            <!-- Wi-Fi -->
+            <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+            <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+
+            <!-- Storage (legacy compatibility) -->
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+        </config-file>
+
+    </platform>
+
 </widget>
