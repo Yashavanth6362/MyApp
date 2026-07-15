@@ -1,58 +1,128 @@
-name: Build Android APK
+name: Send FCM Notification (Embedded Credentials)
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:            # Manual trigger from the Actions tab
+  # schedule:                   # Optional: uncomment to run daily at 9 AM UTC
+  #   - cron: '0 9 * * *'
 
 jobs:
-  build:
+  send-notification:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Send FCM Notification
+        env:
+          # ----- HARD‑CODED SERVICE ACCOUNT (for testing only) -----
+          # Replace the following values with your own.
+          PROJECT_ID: "happy-b779c"
+          CLIENT_EMAIL: "firebase-adminsdk-fbsvc@happy-b779c.iam.gserviceaccount.com"
+          PRIVATE_KEY: |
+            -----BEGIN PRIVATE KEY-----
+            MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDNluUkTg3Rr8Iz
+            +DKzPIXJFIBLymAa62FoGvgzPEkZT5DGvqPJQ1GeTEcSn9CjjlMw7HXGosV7lQeb
+            qc/5J2P7ZrBMZZV2Kk1PKpXi/Pzn28PwCw9RetzibY5yWTJ5w+ImVh8KvrBFlgx1
+            GUYtOVpdFugHzx5N+VsLbV3iYgZrFx/uM+5vM96d74HogtzJ5dO3oe7xme5FqN6A
+            kaBbYVtkqhMbmagssqFI5DkYMTGAj1Lx7QzRTzKUxwW7r3tNaGgRjUvo5aNGF5S/
+            zjTrG7kIwc6eLHhdF4zYKRi/S4MRgi5QhbALdiRwsT3+Djd6OryZMyhql9SRsnMb
+            2+ChK6K7AgMBAAECggEAG57pFH/AvzSv+zUec/0uyOKjuqBVrsLZOILdvghx67Vz
+            BniTXwAChal1fQI9UNQCHOxlMGAq9wer2NUvgf0G+OjayRDMIUQyqcRXadfCZKYe
+            b3AU8/Cf9MhySa5D0p8nZtjNh9ncVc+rHHUI/BzHUAK6qV3sEjQXmslBQp/CgVLW
+            nyk1KlWQEgOdpxAgjCDU2IKxrZgfQvpvqHU7YVebEB1tkXFGNjzfX5LvcWkAcKV2Y
+            KOuHCSgbWYlu/cmu9zGcKX10yRd/npzzOXUlXp05HVhSJrqCu4mH4FziEUjAmvDK
+            pcGrFhOqeWrCxbPZHr7WEd7SYDsB6DmIJZga7o8TJQKBgQDyPMP2+RaRgLyDK+Kd
+            0PbfNAxmswgyxc6kZsUUkauWJ9dqpJucQT8/xdBeQsNs3qI4oHykFyqVIJC7EM5q
+            ZzmARmNISHj84+mlWY2I67OHmr3oZxb6weMwX++XcOO8OrN2tUQJ2lsO7XrR/gZb
+            KWXiDzXPnkuUnezkYr4P99HF5QKBgQDZRRoNtAlKgmCoPFIygjQjjkXKxjAdcMg7
+            ljn0qexgDt4N0F3MeaT/t1oMhQD1K0OPrb8gPOnB62COXe1gcSs/BnREtaLR8bhr
+            QapjdnJhzboaMyFAqe7a8GN/Bhxl9ylEv9aL6R+ajCB9MHdPXNEC7sHAKG4Wy3TL
+            wKntLKc8HwKBgHT1Z/zoOcBZMyv2VX2zdm9Atzgi+zNglKyGPmP3Daz7YaRJBCVG
+            z54gCcJpY+g9+n9y5Zto4BOO3LKlo7R2UKoh0jAFZf1coeRHP/I7M7ymt0jt9Ydv
+            dB1YRNuPEzY/9YS8crR7LHohqaqYh0Me0uV6SJYNLRr9wXJoRrJ5Cl0NAoGAUmxS
+            i+xGsgtv26K2lA6s9OgeNeSlkCWe8Gv3JIfp8i7xsk/fpZhoLdJCyQkT6e41vSXu
+            oa46B6ThhmC/kpycCVbLeN1nHToT+ix5FS50CgJfnVzUOpG82TXkqOWKlGwFLd2Q
+            6JbRtHGASb2/JU5SxEgLHHi5+s/ISRuX2y/baYUCgYBp5b3VhXrHeauWuN3jh+5F
+            V2a5NU32aefuC/HcG5QAKDy5J30BEsvmD8FZbDyaVQeKxhSoyHA9Auyj/1+2Igaj
+            oZcoyhSk08vG6pjV6TRurWpa7FlmebMcFm2yHdphCbl97MG9WR5fc7PumsQxiMhv
+            tqp8WP+m/gyrexXsv2VKyg==
+            -----END PRIVATE KEY-----
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
+          # ----- HARD‑CODED DEVICE TOKEN (replace with your own) -----
+          DEVICE_TOKEN: "eNaBWG0SLNc:APA91bGOgsUHSlq_XqMZ_6QN8qdA775BUiBdBsR3jgtqE1RNIvffHHbO9fKYHGUxDWs5y-vNh4kjLokNfWcb0TYLqC27p5qRV9lPfRohSOM9M4NkV2kDI3U"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: npm
+          # ----- Optional: Custom title and body -----
+          TITLE: "GitHub Actions Notification"
+          BODY: "This notification was sent from a GitHub Actions workflow!"
 
-      - name: Install Cordova
-        run: npm install -g cordova
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Check Cordova
         run: |
-          cordova -v
-          node -v
-          npm -v
+          # ----------------------------------------------
+          # 1. Generate JWT
+          # ----------------------------------------------
+          base64url() {
+            openssl base64 -A | tr -d '=' | tr '/+' '_-'
+          }
 
-      - name: Add Android Platform
-        run: |
-          if [ ! -d "platforms/android" ]; then
-            cordova platform add android
+          NOW=$(date +%s)
+          EXP=$((NOW + 3600))
+
+          JWT_HEADER=$(echo -n '{"alg":"RS256","typ":"JWT"}' | base64url)
+          JWT_PAYLOAD=$(echo -n '{
+            "iss": "'"$CLIENT_EMAIL"'",
+            "scope": "https://www.googleapis.com/auth/firebase.messaging",
+            "aud": "https://oauth2.googleapis.com/token",
+            "iat": '"$NOW"',
+            "exp": '"$EXP"'
+          }' | base64url)
+
+          JWT_SIGNATURE_INPUT="$JWT_HEADER.$JWT_PAYLOAD"
+
+          # Write private key to a temp file for signing
+          echo "$PRIVATE_KEY" > /tmp/private-key.pem
+
+          JWT_SIGNATURE=$(echo -n "$JWT_SIGNATURE_INPUT" | openssl dgst -sha256 -sign /tmp/private-key.pem -binary | base64url)
+          rm -f /tmp/private-key.pem
+
+          JWT="$JWT_SIGNATURE_INPUT.$JWT_SIGNATURE"
+
+          # ----------------------------------------------
+          # 2. Exchange JWT for OAuth2 access token
+          # ----------------------------------------------
+          ACCESS_TOKEN_RESPONSE=$(curl -s -X POST https://oauth2.googleapis.com/token \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=$JWT")
+
+          ACCESS_TOKEN=$(echo "$ACCESS_TOKEN_RESPONSE" | jq -r '.access_token')
+
+          if [ "$ACCESS_TOKEN" = "null" ] || [ -z "$ACCESS_TOKEN" ]; then
+            echo "❌ Failed to obtain access token"
+            echo "Response: $ACCESS_TOKEN_RESPONSE"
+            exit 1
           fi
+          echo "✅ Obtained access token"
 
-      - name: Prepare Project
-        run: cordova prepare
+          # ----------------------------------------------
+          # 3. Send FCM notification
+          # ----------------------------------------------
+          FCM_PAYLOAD='{
+            "message": {
+              "token": "'"$DEVICE_TOKEN"'",
+              "notification": {
+                "title": "'"$TITLE"'",
+                "body": "'"$BODY"'"
+              },
+              "android": { "priority": "HIGH" }
+            }
+          }'
 
-      - name: Build Debug APK
-        run: cordova build android --debug
+          FCM_RESPONSE=$(curl -s -X POST "https://fcm.googleapis.com/v1/projects/$PROJECT_ID/messages:send" \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$FCM_PAYLOAD")
 
-      - name: Show APK
-        run: find platforms -name "*.apk"
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: MyApp-Debug-APK
-          path: |
-            platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          if echo "$FCM_RESPONSE" | jq -e '.name' > /dev/null; then
+            echo "✅ Notification sent successfully!"
+            echo "Response: $FCM_RESPONSE"
+          else
+            echo "❌ Failed to send notification"
+            echo "Error: $FCM_RESPONSE"
+            exit 1
+          fi
