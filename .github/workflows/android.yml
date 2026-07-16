@@ -41,10 +41,14 @@ jobs:
           resp = requests.get(worker_url)
           resp.raise_for_status()
 
-          # 2. Parse the JSON (should be valid now)
+          # 2. Parse JSON
           sa_info = resp.json()
 
-          # 3. Create credentials
+          # 3. FIX: replace escaped newlines with real newlines
+          if 'private_key' in sa_info:
+              sa_info['private_key'] = sa_info['private_key'].replace('\\n', '\n')
+
+          # 4. Create credentials
           credentials = service_account.Credentials.from_service_account_info(
               sa_info,
               scopes=['https://www.googleapis.com/auth/firebase.messaging']
@@ -52,7 +56,7 @@ jobs:
           credentials.refresh(requests.Request())
           access_token = credentials.token
 
-          # 4. Prepare FCM payload
+          # 5. Prepare FCM payload
           payload = {
               "message": {
                   "token": os.environ['TOKEN'],
@@ -64,7 +68,7 @@ jobs:
               }
           }
 
-          # 5. Send the notification
+          # 6. Send the notification
           url = f"https://fcm.googleapis.com/v1/projects/{sa_info['project_id']}/messages:send"
           headers = {
               "Authorization": f"Bearer {access_token}",
