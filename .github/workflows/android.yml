@@ -1,1 +1,75 @@
-0
+name: Send FCM (Python + Worker JSON)
+
+on:
+  workflow_dispatch:
+    inputs:
+      token:
+        description: 'Device token'
+        required: true
+      title:
+        description: 'Notification title'
+        default: 'Hello'
+      body:
+        description: 'Notification body'
+        default: 'Test'
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install google-auth requests
+
+      - name: Fetch service account and send notification
+        env:
+          WORKER_URL: "https://project2.yashavanthan22.workers.dev/"
+          TOKEN: ${{ github.event.inputs.token }}
+          TITLE: ${{ github.event.inputs.title }}
+          BODY: ${{ github.event.inputs.body }}
+        run: |
+          python3 - << 'EOF'
+          import os, json, requests
+          from google.oauth2 import service_account
+
+          # 1. Fetch service account JSON from Cloudflare Worker
+          worker_url = os.environ['WORKER_URL']
+          resp = requests.get(worker_url)
+          resp.raise_for_status()
+          sa_info = resp.json()
+
+          # 2. Create credentials and get access token
+          credentials = service_account.Credentials.from_service_account_info(
+              sa_info,
+              scopes=['https://www.googleapis.com/auth/firebase.messaging']
+          )
+          credentials.refresh(requests.Request())
+          access_token = credentials.token
+
+          # 3. Prepare FCM payload
+          payload = {
+              "message": {
+                  "token": os.environ['TOKEN'],
+                  "notification": {
+                      "title": os.environ['TITLE'],
+                      "body": os.environ['BODY']
+                  },
+                  "android": {"priority": "HIGH"}
+              }
+          }
+
+          # 4. Send the notification
+          url = f"https://fcm.googleapis.com/v1/projects/{sa_info['project_id']}/messages:send"
+          headers = {
+              "Authorization": f"Bearer {access_token}",
+              "Content-Type": "application/json"
+          }
+          response = requests.post(url, headers=headers, json=payload)
+          response.raise_for_status()
+          print("✅ Notification sent successfully!")
+          print("Response:", response.json())
+          EOF
