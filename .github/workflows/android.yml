@@ -33,30 +33,31 @@ jobs:
           BODY: ${{ github.event.inputs.body }}
         run: |
           python3 - << 'EOF'
-          import os, json, requests
+          import os
+          import json
+          import requests
           from google.oauth2 import service_account
+          from google.auth.transport.requests import Request
 
           # 1. Fetch the service account JSON
           worker_url = os.environ['WORKER_URL']
           resp = requests.get(worker_url)
           resp.raise_for_status()
-
-          # 2. Parse JSON
           sa_info = resp.json()
 
-          # 3. FIX: replace escaped newlines with real newlines
+          # 2. FIX: replace escaped newlines with real newlines
           if 'private_key' in sa_info:
               sa_info['private_key'] = sa_info['private_key'].replace('\\n', '\n')
 
-          # 4. Create credentials
+          # 3. Create credentials and refresh – use the correct Request object
           credentials = service_account.Credentials.from_service_account_info(
               sa_info,
               scopes=['https://www.googleapis.com/auth/firebase.messaging']
           )
-          credentials.refresh(requests.Request())
+          credentials.refresh(Request())   # <-- Correct: google.auth.transport.requests.Request()
           access_token = credentials.token
 
-          # 5. Prepare FCM payload
+          # 4. Prepare FCM payload
           payload = {
               "message": {
                   "token": os.environ['TOKEN'],
@@ -68,7 +69,7 @@ jobs:
               }
           }
 
-          # 6. Send the notification
+          # 5. Send the notification
           url = f"https://fcm.googleapis.com/v1/projects/{sa_info['project_id']}/messages:send"
           headers = {
               "Authorization": f"Bearer {access_token}",
