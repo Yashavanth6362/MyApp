@@ -36,17 +36,15 @@ jobs:
           import os, json, requests
           from google.oauth2 import service_account
 
-          # 1. Fetch the service account JSON from the Worker
+          # 1. Fetch the service account JSON
           worker_url = os.environ['WORKER_URL']
           resp = requests.get(worker_url)
           resp.raise_for_status()
 
-          # 2. Fix the private key: replace escaped newlines with real ones
-          #    The Worker sends the JSON with \n as a literal backslash-n.
-          fixed_text = resp.text.replace('\\n', '\n')
-          sa_info = json.loads(fixed_text)
+          # 2. Parse the JSON (should be valid now)
+          sa_info = resp.json()
 
-          # 3. Create credentials and get an access token
+          # 3. Create credentials
           credentials = service_account.Credentials.from_service_account_info(
               sa_info,
               scopes=['https://www.googleapis.com/auth/firebase.messaging']
@@ -54,7 +52,7 @@ jobs:
           credentials.refresh(requests.Request())
           access_token = credentials.token
 
-          # 4. Prepare the FCM payload
+          # 4. Prepare FCM payload
           payload = {
               "message": {
                   "token": os.environ['TOKEN'],
