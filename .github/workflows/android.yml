@@ -2,8 +2,8 @@ name: Daily Crop Price Scraper
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Runs daily at 5:30 AM IST
-  workflow_dispatch:      # Manual run
+    - cron: '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
   scrape:
@@ -20,10 +20,14 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Create data folder
+      - name: Create data folder and initial files
         run: |
           mkdir -p data
-          echo '{}' > data/crop_prices.json
+          echo '{}' > data/crop_prices_full.json
+          echo '{}' > data/crop_prices_today.json
+          echo '{}' > data/crop_prices_90days.json
+          echo '{}' > data/crop_prices_1year.json
+          echo '{}' > data/crop_prices_5year.json
 
       - name: Create requirements.txt
         run: |
@@ -42,7 +46,7 @@ jobs:
           from datetime import datetime, timedelta
           from bs4 import BeautifulSoup
 
-          DATA_FILE = "data/crop_prices.json"
+          DATA_FOLDER = "data"
 
           CROPS = {
               "p": "paddy",
@@ -96,18 +100,32 @@ jobs:
                               except:
                                   continue
                   return prices
-              except:
+              except Exception as e:
+                  print(f"Scraping error: {e}")
                   return None
 
           def get_fallback_prices():
               return {
-                  "p": [22, 25, 23], "r": [18, 21, 19], "j": [20, 23, 21],
-                  "m": [19, 22, 20], "s": [35, 40, 37], "c": [12, 15, 13],
-                  "a": [25, 30, 27], "t": [28, 32, 30], "g": [15, 18, 16],
-                  "sf": [22, 26, 24], "ct": [68, 72, 70], "ch": [50, 60, 55],
-                  "o": [20, 25, 22], "po": [18, 22, 20], "to": [15, 20, 17],
-                  "br": [10, 15, 12], "cb": [12, 16, 14], "cf": [14, 18, 16],
-                  "mg": [30, 40, 35], "bn": [25, 30, 27]
+                  "p": [22, 25, 23],
+                  "r": [18, 21, 19],
+                  "j": [20, 23, 21],
+                  "m": [19, 22, 20],
+                  "s": [35, 40, 37],
+                  "c": [12, 15, 13],
+                  "a": [25, 30, 27],
+                  "t": [28, 32, 30],
+                  "g": [15, 18, 16],
+                  "sf": [22, 26, 24],
+                  "ct": [68, 72, 70],
+                  "ch": [50, 60, 55],
+                  "o": [20, 25, 22],
+                  "po": [18, 22, 20],
+                  "to": [15, 20, 17],
+                  "br": [10, 15, 12],
+                  "cb": [12, 16, 14],
+                  "cf": [14, 18, 16],
+                  "mg": [30, 40, 35],
+                  "bn": [25, 30, 27]
               }
 
           def get_today_prices():
@@ -117,22 +135,59 @@ jobs:
                   prices = get_fallback_prices()
               return prices
 
+          def ensure_data_folder():
+              if not os.path.exists(DATA_FOLDER):
+                  os.makedirs(DATA_FOLDER)
+
           def load_history():
-              if os.path.exists(DATA_FILE):
-                  with open(DATA_FILE, 'r') as f:
-                      return json.load(f)
+              ensure_data_folder()
+              file_path = f"{DATA_FOLDER}/crop_prices_full.json"
+              if os.path.exists(file_path):
+                  try:
+                      with open(file_path, 'r') as f:
+                          return json.load(f)
+                  except:
+                      return {}
               return {}
 
-          def save_history(data):
-              os.makedirs("data", exist_ok=True)
-              with open(DATA_FILE, 'w') as f:
+          def save_json(data, filename):
+              ensure_data_folder()
+              file_path = f"{DATA_FOLDER}/{filename}"
+              with open(file_path, 'w') as f:
                   json.dump(data, f, separators=(',',':'))
+              size = os.path.getsize(file_path)
+              if size < 1024:
+                  size_str = f"{size} bytes"
+              elif size < 1024 * 1024:
+                  size_str = f"{size/1024:.1f} KB"
+              else:
+                  size_str = f"{size/(1024*1024):.1f} MB"
+              print(f"   ✅ Saved: {filename} ({size_str})")
+
+          def filter_data(history, days):
+              if days == 0:
+                  cutoff = datetime.now() - timedelta(days=1)
+              else:
+                  cutoff = datetime.now() - timedelta(days=days)
+              filtered = {}
+              for crop, entries in history.items():
+                  filtered[crop] = [
+                      entry for entry in entries
+                      if datetime.strptime(entry[0], "%y%m%d") >= cutoff
+                  ]
+              return filtered
 
           def update_prices():
               today = datetime.now().strftime("%y%m%d")
-              print(f"📅 Updating: {today}")
+              print(f"\n{'='*50}")
+              print(f"🌾 CROP PRICE UPDATER")
+              print(f"📅 Date: {today}")
+              print(f"{'='*50}\n")
+
+              print("📊 Scraping prices...")
               today_prices = get_today_prices()
               history = load_history()
+
               updated = 0
               for crop_code, prices in today_prices.items():
                   if crop_code not in history:
@@ -141,15 +196,42 @@ jobs:
                       continue
                   history[crop_code].append([today] + prices)
                   updated += 1
-                  cutoff = datetime.now() - timedelta(days=1825)
+
+              cutoff = datetime.now() - timedelta(days=1825)
+              for crop_code in history:
                   history[crop_code] = [
                       entry for entry in history[crop_code]
                       if datetime.strptime(entry[0], "%y%m%d") >= cutoff
                   ]
-              save_history(history)
-              print(f"✅ Updated {updated} crops")
-              size = os.path.getsize(DATA_FILE)
-              print(f"📁 File size: {size} bytes")
+
+              print(f"\n📁 Saving 5 files:\n")
+
+              # Today (1 day)
+              today_data = filter_data(history, 0)
+              save_json(today_data, "crop_prices_today.json")
+
+              # 90 Days
+              data_90 = filter_data(history, 90)
+              save_json(data_90, "crop_prices_90days.json")
+
+              # 1 Year (365 days)
+              data_365 = filter_data(history, 365)
+              save_json(data_365, "crop_prices_1year.json")
+
+              # 5 Years (1825 days)
+              data_1825 = filter_data(history, 1825)
+              save_json(data_1825, "crop_prices_5year.json")
+
+              # Full history
+              save_json(history, "crop_prices_full.json")
+
+              total = sum(len(v) for v in history.values())
+              print(f"\n{'='*50}")
+              print(f"✅ UPDATE COMPLETE!")
+              print(f"   📈 Total entries: {total}")
+              print(f"   📁 Files: 5")
+              print(f"   🌾 Crops: {len(history)}")
+              print(f"{'='*50}\n")
 
           if __name__ == "__main__":
               update_prices()
@@ -167,6 +249,6 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add data/crop_prices.json
+          git add data/
           git commit -m "Automated crop price update: $(date '+%Y-%m-%d')" || echo "No changes to commit"
           git push
