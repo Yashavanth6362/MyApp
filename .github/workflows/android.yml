@@ -73,7 +73,7 @@ jobs:
 
           def scrape_krishimarket():
               try:
-                  url = "https://krishimarket.com/market-prices"
+                  url = "https://enam.gov.in"
                   headers = {'User-Agent': 'Mozilla/5.0'}
                   response = requests.get(url, headers=headers, timeout=30)
                   soup = BeautifulSoup(response.text, 'html.parser')
