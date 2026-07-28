@@ -1,81 +1,172 @@
-name: Send FCM (Python + Worker JSON)
+name: Daily Crop Price Scraper
 
 on:
-  workflow_dispatch:
-    inputs:
-      token:
-        description: 'Device token'
-        required: true
-      title:
-        description: 'Notification title'
-        default: 'Hello'
-      body:
-        description: 'Notification body'
-        default: 'Test'
+  schedule:
+    - cron: '0 0 * * *'  # Runs daily at 5:30 AM IST
+  workflow_dispatch:      # Manual run
 
 jobs:
-  send:
+  scrape:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
     steps:
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
-        run: pip install google-auth requests
-
-      - name: Fetch service account and send notification
-        env:
-          WORKER_URL: "https://project2.yashavanthan22.workers.dev/"
-          TOKEN: ${{ github.event.inputs.token }}
-          TITLE: ${{ github.event.inputs.title }}
-          BODY: ${{ github.event.inputs.body }}
+      - name: Create data folder
         run: |
-          python3 - << 'EOF'
-          import os, json, requests
-          from google.oauth2 import service_account
-          from google.auth.transport.requests import Request
+          mkdir -p data
+          echo '{}' > data/crop_prices.json
 
-          # 1. Fetch the service account JSON
-          worker_url = os.environ['WORKER_URL']
-          resp = requests.get(worker_url)
-          resp.raise_for_status()
-
-          # 2. Parse JSON – this will convert \n escapes to real newlines
-          sa_info = resp.json()
-
-          # 3. Debug: print first 100 chars of private_key to verify format
-          print("Private key starts with:", sa_info['private_key'][:50])
-
-          # 4. Create credentials and refresh (using correct Request class)
-          credentials = service_account.Credentials.from_service_account_info(
-              sa_info,
-              scopes=['https://www.googleapis.com/auth/firebase.messaging']
-          )
-          credentials.refresh(Request())
-          access_token = credentials.token
-
-          # 5. Prepare FCM payload
-          payload = {
-              "message": {
-                  "token": os.environ['TOKEN'],
-                  "notification": {
-                      "title": os.environ['TITLE'],
-                      "body": os.environ['BODY']
-                  },
-                  "android": {"priority": "HIGH"}
-              }
-          }
-
-          # 6. Send notification
-          url = f"https://fcm.googleapis.com/v1/projects/{sa_info['project_id']}/messages:send"
-          headers = {
-              "Authorization": f"Bearer {access_token}",
-              "Content-Type": "application/json"
-          }
-          response = requests.post(url, headers=headers, json=payload)
-          response.raise_for_status()
-          print("✅ Notification sent successfully!")
-          print("Response:", response.json())
+      - name: Create requirements.txt
+        run: |
+          cat > requirements.txt << 'EOF'
+          requests==2.31.0
+          beautifulsoup4==4.12.2
+          lxml==4.9.3
           EOF
+
+      - name: Create scraper.py
+        run: |
+          cat > scraper.py << 'EOF'
+          import requests
+          import json
+          import os
+          from datetime import datetime, timedelta
+          from bs4 import BeautifulSoup
+
+          DATA_FILE = "data/crop_prices.json"
+
+          CROPS = {
+              "p": "paddy",
+              "r": "ragi",
+              "j": "jowar",
+              "m": "maize",
+              "s": "sugarcane",
+              "c": "coconut",
+              "a": "arecanut",
+              "t": "tur_dal",
+              "g": "groundnut",
+              "sf": "sunflower",
+              "ct": "cotton",
+              "ch": "chilli",
+              "o": "onion",
+              "po": "potato",
+              "to": "tomato",
+              "br": "brinjal",
+              "cb": "cabbage",
+              "cf": "cauliflower",
+              "mg": "mango",
+              "bn": "banana"
+          }
+
+          def scrape_krishimarket():
+              try:
+                  url = "https://krishimarket.com/market-prices"
+                  headers = {'User-Agent': 'Mozilla/5.0'}
+                  response = requests.get(url, headers=headers, timeout=30)
+                  soup = BeautifulSoup(response.text, 'html.parser')
+                  table = soup.find('table')
+                  if not table:
+                      return None
+                  rows = table.find_all('tr')[1:]
+                  prices = {}
+                  for row in rows:
+                      cols = row.find_all('td')
+                      if len(cols) >= 4:
+                          crop_name = cols[0].text.strip().lower()
+                          code = None
+                          for c, name in CROPS.items():
+                              if name in crop_name or crop_name in name:
+                                  code = c
+                                  break
+                          if code:
+                              try:
+                                  min_p = int(cols[1].text.replace(',', '').strip())
+                                  max_p = int(cols[2].text.replace(',', '').strip())
+                                  modal_p = int(cols[3].text.replace(',', '').strip())
+                                  prices[code] = [min_p // 100, max_p // 100, modal_p // 100]
+                              except:
+                                  continue
+                  return prices
+              except:
+                  return None
+
+          def get_fallback_prices():
+              return {
+                  "p": [22, 25, 23], "r": [18, 21, 19], "j": [20, 23, 21],
+                  "m": [19, 22, 20], "s": [35, 40, 37], "c": [12, 15, 13],
+                  "a": [25, 30, 27], "t": [28, 32, 30], "g": [15, 18, 16],
+                  "sf": [22, 26, 24], "ct": [68, 72, 70], "ch": [50, 60, 55],
+                  "o": [20, 25, 22], "po": [18, 22, 20], "to": [15, 20, 17],
+                  "br": [10, 15, 12], "cb": [12, 16, 14], "cf": [14, 18, 16],
+                  "mg": [30, 40, 35], "bn": [25, 30, 27]
+              }
+
+          def get_today_prices():
+              prices = scrape_krishimarket()
+              if not prices:
+                  print("⚠️ Using fallback data")
+                  prices = get_fallback_prices()
+              return prices
+
+          def load_history():
+              if os.path.exists(DATA_FILE):
+                  with open(DATA_FILE, 'r') as f:
+                      return json.load(f)
+              return {}
+
+          def save_history(data):
+              os.makedirs("data", exist_ok=True)
+              with open(DATA_FILE, 'w') as f:
+                  json.dump(data, f, separators=(',',':'))
+
+          def update_prices():
+              today = datetime.now().strftime("%y%m%d")
+              print(f"📅 Updating: {today}")
+              today_prices = get_today_prices()
+              history = load_history()
+              updated = 0
+              for crop_code, prices in today_prices.items():
+                  if crop_code not in history:
+                      history[crop_code] = []
+                  if history[crop_code] and history[crop_code][-1][0] == today:
+                      continue
+                  history[crop_code].append([today] + prices)
+                  updated += 1
+                  cutoff = datetime.now() - timedelta(days=1825)
+                  history[crop_code] = [
+                      entry for entry in history[crop_code]
+                      if datetime.strptime(entry[0], "%y%m%d") >= cutoff
+                  ]
+              save_history(history)
+              print(f"✅ Updated {updated} crops")
+              size = os.path.getsize(DATA_FILE)
+              print(f"📁 File size: {size} bytes")
+
+          if __name__ == "__main__":
+              update_prices()
+          EOF
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run scraper
+        run: |
+          python scraper.py
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data/crop_prices.json
+          git commit -m "Automated crop price update: $(date '+%Y-%m-%d')" || echo "No changes to commit"
+          git push
