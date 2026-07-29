@@ -1,1 +1,123 @@
-[]
+
+[
+  {
+    "id": 1001,
+    "title": "ಕೆಆರ್ಎಸ್ ಜಲಾಶಯದ ನೀರಿನ ಮಟ್ಟ 85 ಅಡಿಗೆ ಏರಿಕೆ | KRS water level rises to 85 feet",
+    "image": "krs-water.jpg",
+    "date": "2026-07-29",
+    "category": "Water",
+    "location": "Mandya"
+  },
+  {
+    "id": 1002,
+    "title": "ಪಾಂಡವಪುರದಲ್ಲಿ ರೈತ ಸಂಘದ ಪ್ರತಿಭಟನೆ - ನೀರಿನ ಸಮಸ್ಯೆ ಕುರಿತು ಆಂದೋಲನ | Farmers protest in Pandavapura over water issues",
+    "image": "farmers-protest.jpg",
+    "date": "2026-07-29",
+    "category": "Local",
+    "location": "Pandavapura"
+  },
+  {
+    "id": 1003,
+    "title": "ಮೇಲುಕೋಟೆ ಚೆಲುವನಾರಾಯಣಸ್ವಾಮಿ ದೇವಸ್ಥಾನದಲ್ಲಿ ವಾರ್ಷಿಕ ಜಾತ್ರೆ ಪ್ರಾರಂಭ | Annual fair begins at Melukote Cheluvanarayanaswamy Temple",
+    "image": "melukote-fair.jpg",
+    "date": "2026-07-28",
+    "category": "Temple",
+    "location": "Melukote"
+  },
+  {
+    "id": 1004,
+    "title": "ಮಂಡ್ಯ ಜಿಲ್ಲೆಯಲ್ಲಿ 50 ಹೊಸ ರೈತ ಸಂಪರ್ಕ ಕೇಂದ್ರಗಳ ಉದ್ಘಾಟನೆ | 50 new farmer contact centers inaugurated in Mandya district",
+    "image": "farmer-center.jpg",
+    "date": "2026-07-28",
+    "category": "Agriculture",
+    "location": "Mandya"
+  },
+  {
+    "id": 1005,
+    "title": "ಹೇಮಾವತಿ ಜಲಾಶಯದಲ್ಲಿ ನೀರಿನ ಮಟ್ಟ 90 ಅಡಿಗೆ ಏರಿಕೆ - ರೈತರಿಗೆ ಸಂತಸ | Hemavathi water level rises to 90 feet - Farmers happy",
+    "image": "hemavathi-water.jpg",
+    "date": "2026-07-27",
+    "category": "Water",
+    "location": "Hassan"
+  },
+  {
+    "id": 1006,
+    "title": "ಪಾಂಡವಪುರ ತಾಲೂಕಿನಲ್ಲಿ ಸಾವಯವ ಕೃಷಿ ಯೋಜನೆಗೆ ಚಾಲನೆ | Organic farming project launched in Pandavapura taluk",
+    "image": "organic-farming.jpg",
+    "date": "2026-07-27",
+    "category": "Agriculture",
+    "location": "Pandavapura"
+  },
+  {
+    "id": 1007,
+    "title": "ಮಂಡ್ಯದಲ್ಲಿ ನಾಳೆ ಬಂದ್ ಘೋಷಣೆ - ವ್ಯಾಪಾರಿಗಳ ಮುಷ್ಕರ | Bandh announced tomorrow in Mandya - Traders strike",
+    "image": "bandh-protest.jpg",
+    "date": "2026-07-26",
+    "category": "Local",
+    "location": "Mandya"
+  },
+  {
+    "id": 1008,
+    "title": "ಮೇಲುಕೋಟೆಯಲ್ಲಿ 200 ವರ್ಷಗಳ ಇತಿಹಾಸದ ದೇವಸ್ಥಾನ ಶಿಲ್ಪಕಲೆ ಬಗ್ಗೆ ಸಂಶೋಧನೆ | Research on 200-year-old temple architecture in Melukote",
+    "image": "temple-architecture.jpg",
+    "date": "2026-07-26",
+    "category": "Heritage",
+    "location": "Melukote"
+  },
+  {
+    "id": 1009,
+    "title": "ಕೆಆರ್ಎಸ್ ಜಲಾಶಯದಿಂದ ತಮಿಳುನಾಡಿಗೆ 2000 ಕ್ಯೂಸೆಕ್ ನೀರು ಹರಿಸಲು ಸಿಡಬ್ಲ್ಯೂಆರ್ಸಿ ನಿರ್ಧಾರ | CWRC decides to release 2000 cusecs water to Tamil Nadu",
+    "image": "cwrc-meeting.jpg",
+    "date": "2026-07-25",
+    "category": "Water",
+    "location": "Mandya"
+  },
+  {
+    "id": 1010,
+    "title": "ಪಾಂಡವಪುರದಲ್ಲಿ ಶಾಲಾ ಮಕ್ಕಳಿಗೆ ಉಚಿತ ಪಠ್ಯಪುಸ್ತಕ ವಿತರಣೆ | Free textbooks distributed to school children in Pandavapura",
+    "image": "school-books.jpg",
+    "date": "2026-07-25",
+    "category": "Education",
+    "location": "Pandavapura"
+  },
+  {
+    "id": 1011,
+    "title": "ಹೇಮಾವತಿ ನದಿಯಲ್ಲಿ ಪ್ರವಾಹ ಎಚ್ಚರಿಕೆ - 5 ಗ್ರಾಮಗಳಿಗೆ ಅಲರ್ಟ್ | Flood alert in Hemavathi river - 5 villages on alert",
+    "image": "flood-alert.jpg",
+    "date": "2026-07-24",
+    "category": "Water",
+    "location": "Hassan"
+  },
+  {
+    "id": 1012,
+    "title": "ಮಂಡ್ಯ ಜಿಲ್ಲೆಯಲ್ಲಿ ಭತ್ತದ ಕೊಯ್ಲು ಪ್ರಾರಂಭ - ರೈತರಲ್ಲಿ ಸಂತಸ | Paddy harvesting begins in Mandya district - Farmers happy",
+    "image": "paddy-harvest.jpg",
+    "date": "2026-07-24",
+    "category": "Agriculture",
+    "location": "Mandya"
+  },
+  {
+    "id": 1013,
+    "title": "ಮೇಲುಕೋಟೆಯಲ್ಲಿ ಪ್ರವಾಸಿಗರ ಸಂಖ್ಯೆಯಲ್ಲಿ ಭಾರೀ ಏರಿಕೆ | Tourist footfall increases significantly in Melukote",
+    "image": "melukote-tourists.jpg",
+    "date": "2026-07-23",
+    "category": "Tourism",
+    "location": "Melukote"
+  },
+  {
+    "id": 1014,
+    "title": "ಪಾಂಡವಪುರ ತಾಲೂಕಿನಲ್ಲಿ 20 ಹೊಸ ಬೋರ್ವೆಲ್ಗಳಿಗೆ ಅನುಮೋದನೆ | Approval for 20 new borewells in Pandavapura taluk",
+    "image": "borewell.jpg",
+    "date": "2026-07-23",
+    "category": "Local",
+    "location": "Pandavapura"
+  },
+  {
+    "id": 1015,
+    "title": "ಕೆಆರ್ಎಸ್ ಜಲಾಶಯದಲ್ಲಿ ವಿದ್ಯುತ್ ಉತ್ಪಾದನೆ ಪ್ರಾರಂಭ | Power generation begins at KRS dam",
+    "image": "krs-power.jpg",
+    "date": "2026-07-22",
+    "category": "Water",
+    "location": "Mandya"
+  }
+]
