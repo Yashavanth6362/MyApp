@@ -1,1 +1,50 @@
-[]
+[
+  {
+    "id": 1002,
+    "title": "ಪಾಂಡವಪುರದಲ್ಲಿ ರೈತ ಸಂಘದ ಪ್ರತಿಭಟನೆ - ನೀರಿನ ಸಮಸ್ಯೆ ಕುರಿತು ಆಂದೋಲನ",
+    "image": "farmers-protest.jpg",
+    "date": "2026-07-29",
+    "category": "Local",
+    "location": "Pandavapura"
+  },
+  {
+    "id": 1006,
+    "title": "ಪಾಂಡವಪುರ ತಾಲೂಕಿನಲ್ಲಿ ಸಾವಯವ ಕೃಷಿ ಯೋಜನೆಗೆ ಚಾಲನೆ",
+    "image": "organic-farming.jpg",
+    "date": "2026-07-27",
+    "category": "Agriculture",
+    "location": "Pandavapura"
+  },
+  {
+    "id": 1010,
+    "title": "ಪಾಂಡವಪುರದಲ್ಲಿ ಶಾಲಾ ಮಕ್ಕಳಿಗೆ ಉಚಿತ ಪಠ್ಯಪುಸ್ತಕ ವಿತರಣೆ",
+    "image": "school-books.jpg",
+    "date": "2026-07-25",
+    "category": "Education",
+    "location": "Pandavapura"
+  },
+  {
+    "id": 1014,
+    "title": "ಪಾಂಡವಪುರ ತಾಲೂಕಿನಲ್ಲಿ 20 ಹೊಸ ಬೋರ್ವೆಲ್ಗಳಿಗೆ ಅನುಮೋದನೆ",
+    "image": "borewell.jpg",
+    "date": "2026-07-23",
+    "category": "Local",
+    "location": "Pandavapura"
+  },
+  {
+    "id": 1016,
+    "title": "ಪಾಂಡವಪುರದಲ್ಲಿ ನೂತನ ಸಹಕಾರಿ ಸಂಘ ಉದ್ಘಾಟನೆ",
+    "image": "cooperative-society.jpg",
+    "date": "2026-07-22",
+    "category": "Business",
+    "location": "Pandavapura"
+  },
+  {
+    "id": 1017,
+    "title": "ಪಾಂಡವಪುರ ತಾಲೂಕಿನಲ್ಲಿ ವಿದ್ಯುತ್ ಸಮಸ್ಯೆ - ರೈತರು ಆಕ್ರೋಶ",
+    "image": "power-problem.jpg",
+    "date": "2026-07-21",
+    "category": "Local",
+    "location": "Pandavapura"
+  }
+]
