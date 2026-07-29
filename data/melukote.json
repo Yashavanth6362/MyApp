@@ -1,1 +1,50 @@
-[]
+[
+  {
+    "id": 1003,
+    "title": "ಮೇಲುಕೋಟೆ ಚೆಲುವನಾರಾಯಣಸ್ವಾಮಿ ದೇವಸ್ಥಾನದಲ್ಲಿ ವಾರ್ಷಿಕ ಜಾತ್ರೆ ಪ್ರಾರಂಭ",
+    "image": "melukote-fair.jpg",
+    "date": "2026-07-28",
+    "category": "Temple",
+    "location": "Melukote"
+  },
+  {
+    "id": 1008,
+    "title": "ಮೇಲುಕೋಟೆಯಲ್ಲಿ 200 ವರ್ಷಗಳ ಇತಿಹಾಸದ ದೇವಸ್ಥಾನ ಶಿಲ್ಪಕಲೆ ಬಗ್ಗೆ ಸಂಶೋಧನೆ",
+    "image": "temple-architecture.jpg",
+    "date": "2026-07-26",
+    "category": "Heritage",
+    "location": "Melukote"
+  },
+  {
+    "id": 1013,
+    "title": "ಮೇಲುಕೋಟೆಯಲ್ಲಿ ಪ್ರವಾಸಿಗರ ಸಂಖ್ಯೆಯಲ್ಲಿ ಭಾರೀ ಏರಿಕೆ",
+    "image": "melukote-tourists.jpg",
+    "date": "2026-07-23",
+    "category": "Tourism",
+    "location": "Melukote"
+  },
+  {
+    "id": 1018,
+    "title": "ಮೇಲುಕೋಟೆಯಲ್ಲಿ ಯೋಗಾ ಮತ್ತು ಧ್ಯಾನ ಶಿಬಿರಕ್ಕೆ ವಿದೇಶಿಗರ ಆಗಮನ",
+    "image": "yoga-camp.jpg",
+    "date": "2026-07-20",
+    "category": "Tourism",
+    "location": "Melukote"
+  },
+  {
+    "id": 1019,
+    "title": "ಮೇಲುಕೋಟೆಯಲ್ಲಿ ಪ್ರಾಚೀನ ಶಾಸನ ಪತ್ತೆ - ಇತಿಹಾಸಕಾರರಲ್ಲಿ ಉತ್ಸಾಹ",
+    "image": "ancient-inscription.jpg",
+    "date": "2026-07-18",
+    "category": "Heritage",
+    "location": "Melukote"
+  },
+  {
+    "id": 1020,
+    "title": "ಮೇಲುಕೋಟೆಯಲ್ಲಿ ಸಾಂಸ್ಕೃತಿಕ ಸಮಾರೋಹಕ್ಕೆ ಏರ್ಪಾಡು",
+    "image": "cultural-event.jpg",
+    "date": "2026-07-16",
+    "category": "Culture",
+    "location": "Melukote"
+  }
+]
